@@ -7,23 +7,36 @@ public class App {
 
 
         Connection connection;
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/northwind", "root", "yearup");
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/northwind", "root", "yearup");
 
 
-        Statement statement = connection.createStatement();
+//        Statement statement = connection.createStatement();
+            preparedStatement = connection.prepareStatement("SELECT ProductID, ProductName, UnitPrice, UnitsInStock FROM Products");
 
-        String query = "SELECT ProductName FROM Products";
-        System.out.println(query);
+            System.out.println("Id    Name                                     Price  Stock");
+            System.out.println("---- ---------------------------------------- ------- ------");
 
-        ResultSet results = statement.executeQuery(query);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                int productId = resultSet.getInt("ProductID");
+                String productName = resultSet.getString("ProductName");
+                double price = resultSet.getDouble("UnitPrice");
+                int unitStock = resultSet.getInt("UnitsInStock");
 
-        while (results.next()) {
-            String productName = results.getString("ProductName");
-            System.out.println(productName);
+                System.out.printf("%-4d %-40s %7.2f %6d%n", productId, productName, price, unitStock);
+
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
-        results.close();
-        statement.close();
+
+        resultSet.close();
+        preparedStatement.close();
         connection.close();
 
 
