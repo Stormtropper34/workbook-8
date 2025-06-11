@@ -15,6 +15,8 @@ public class App {
                 System.out.println("\nWhat do you want to do?");
                 System.out.println("1) Display all products");
                 System.out.println("2) Display all customers");
+                System.out.println("3) Display all categories");
+                System.out.println("4) Search for customer");
                 System.out.println("0) Exit");
                 System.out.print("Select an option: ");
 
@@ -28,6 +30,12 @@ public class App {
                             break;
                         case 2:
                             displayAllCustomers(connection);
+                            break;
+                        case 3:
+                            displayAllCategories(connection);
+                            break;
+                        case 4:
+                            searchForCustomer(connection);
                             break;
                         case 0:
                             System.out.println("Exiting.. Adios!");
@@ -48,6 +56,41 @@ public class App {
 
         }
     }
+
+    private static void searchForCustomer(Connection connection) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Search for Customer that starts with: ");
+        String searchCustomer = scanner.nextLine()+ "%";
+
+        String query = "SELECT ContactName, CompanyName FROM Customers " +
+                "WHERE ContactName LIKE ? ORDER BY ContactName";
+
+        try (
+                PreparedStatement preparedStatement = connection.prepareStatement(query)
+        ) {
+            preparedStatement.setString(1, searchCustomer);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                System.out.printf("%-25s %-40s%n", "Contact Name", "Company Name");
+                System.out.println("--------------------------------------------------------------");
+
+
+                while (resultSet.next()) {
+                    String contactName = resultSet.getString("ContactName");
+                    String companyName = resultSet.getString("CompanyName");
+
+                    System.out.printf("%-25s %-40s%n", contactName, companyName);
+                }
+
+            }
+        } catch (SQLException e) {
+            System.out.println("Error searching for customer:");
+            e.printStackTrace();
+        }
+    }
+
+
 
 
     private static void displayAllProducts(Connection connection) {
@@ -99,6 +142,31 @@ public class App {
         } catch (SQLException e) {
             System.out.println("Error displaying customers:");
             e.printStackTrace();
+        }
+
+    }
+
+    private static void displayAllCategories(Connection connection){
+        String query = "SELECT CategoryID, CategoryName FROM Categories ORDER BY CategoryID";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            System.out.printf("%-4s %-40s%n", "ID", "Category Name");
+            System.out.println("---------------------");
+
+            while (resultSet.next()) {
+                String categoryId = resultSet.getString("CategoryID");
+                String categoryName = resultSet.getString("CategoryName");
+
+                System.out.printf("%-4s %-40s%n", categoryId, categoryName);
+
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error displaying categories");
+            e.printStackTrace();
+
         }
     }
 }
